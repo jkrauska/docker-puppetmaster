@@ -1,15 +1,31 @@
-FROM ubuntu:12.04
-MAINTAINER Arcus "http://arcus.io"
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe multiverse" > /etc/apt/sources.list
+FROM ubuntu:14.04
+MAINTAINER Joel Krauska
+
+# Add multiverse
+RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe multiverse" > /etc/apt/sources.list
 RUN apt-get update
+
+# Add wget
 RUN apt-get install -y wget
-RUN wget -q http://apt.puppetlabs.com/puppetlabs-release-precise.deb -O /tmp/puppetlabs.deb
+
+# Wget the trusty repo package from puppetlabs
+RUN wget -q http://apt.puppetlabs.com/puppetlabs-release-trusty.deb -O /tmp/puppetlabs.deb
 RUN dpkg -i /tmp/puppetlabs.deb
 RUN apt-get update
+
+# Install all the packages
 RUN apt-get -y install puppetmaster-passenger puppet-dashboard puppetdb puppetdb-terminus redis-server supervisor openssh-server net-tools mysql-server
+
+# Install needed redis and hiera
 RUN gem install --no-ri --no-rdoc hiera hiera-puppet redis hiera-redis hiera-redis-backend
+
+# Fix localhost
 RUN echo "127.0.0.1 localhost puppet puppetdb puppetdb.local puppet.local" > /etc/hosts
+
+# Make space for sshd
 RUN mkdir /var/run/sshd
+
+# Setup supervisor
 ADD supervisor.conf /opt/supervisor.conf
 ADD auth.conf /etc/puppet/auth.conf
 ADD puppet.conf /etc/puppet/puppet.conf
